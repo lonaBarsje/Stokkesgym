@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="no">
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>Booking av treningsrom</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 15px;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #f0f0f0;
+        }
+
+        td.time {
+            font-weight: bold;
+            background-color: #fafafa;
+            width: 80px;
+        }
+
+        td.slot {
+            min-width: 120px;
+            cursor: pointer;
+            background-color: #d4edda; /* Grønn for ledig */
+        }
+
+        td.slot.taken {
+            background-color: #f8d7da; /* Rød for opptatt */
+            color: #721c24;
+            cursor: not-allowed;
+        }
+
+        /* Responsiv design for små skjermer */
+        @media screen and (max-width: 768px) {
+            table {
+                font-size: 12px;
+            }
+
+            th,
+            td {
+                padding: 5px;
+            }
+
+            td.time,
+            td.slot {
+                display: block;
+                text-align: left;
+                width: 100%;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+    <h1>Booking av treningsrom</h1>
+    <p>Velg en ledig tid ved å klikke på den. Bookingen blir merket som opptatt. Klikk på en opptatt tid for å gjøre den ledig igjen.</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Tid</th>
+                <th>Booking</th>
+            </tr>
+        </thead>
+        <tbody id="calendar-body">
+        </tbody>
+    </table>
+
+    <script>
+        const startHour = 6; // Starter på 06:00
+        const endHour = 23; // Slutter på 23:00
+        const tbody = document.getElementById("calendar-body");
+
+        // Funksjon som genererer tidene i tabellen
+        function generateTimes() {
+            console.log("Genererer tider...");
+            for (let hour = startHour; hour <= endHour; hour++) {
+                const row = document.createElement("tr");
+
+                // Tidene vises i første kolonne
+                const timeCell = document.createElement("td");
+                timeCell.className = "time";
+                timeCell.textContent = `${hour}:00`;
+                row.appendChild(timeCell);
+
+                // Booking-statusen vises i andre kolonne
+                const slotCell = document.createElement("td");
+                slotCell.className = "slot";
+                slotCell.setAttribute("data-hour", hour);
+                slotCell.textContent = "Ledig"; // Standard tekst for ledig
+
+                // Klikk-funksjon for å markere som opptatt eller tilbake til ledig
+                slotCell.onclick = function () {
+                    if (slotCell.classList.contains("taken")) {
+                        // Hvis den er opptatt, gjør den ledig
+                        slotCell.classList.remove("taken");
+                        slotCell.textContent = "Ledig";
+                        slotCell.style.backgroundColor = "#d4edda"; // Tilbake til grønn
+                    } else {
+                        // Hvis den er ledig, gjør den opptatt
+                        slotCell.classList.add("taken");
+                        slotCell.textContent = "Opptatt";
+                        slotCell.style.backgroundColor = "#f8d7da"; // Rød bakgrunn
+                    }
+                };
+
+                row.appendChild(slotCell);
+                tbody.appendChild(row);
+            }
+            console.log("Tider generert.");
+        }
+
+        // Kall funksjonen for å generere tidene
+        window.onload = function() {
+            console.log("Dokumentet er lastet, genererer tider...");
+            generateTimes();
+        }
+    </script>
+
+</body>
+
+</html>
