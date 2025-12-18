@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+
+<html lang="no">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>Booking av treningsrom</title>
+
+    <style>
+
+        body {
+
+            font-family: Arial, sans-serif;
+
+            padding: 20px;
+
+        }
+
+
+
+        h1 {
+
+            margin-bottom: 5px;
+
+        }
+
+
+
+        table {
+
+            border-collapse: collapse;
+
+            width: 100%;
+
+            margin-top: 15px;
+
+        }
+
+
+
+        th, td {
+
+            border: 1px solid #ccc;
+
+            padding: 6px;
+
+            text-align: center;
+
+            font-size: 14px;
+
+        }
+
+
+
+        th {
+
+            background-color: #f0f0f0;
+
+        }
+
+
+
+        td.time {
+
+            font-weight: bold;
+
+            background-color: #fafafa;
+
+            width: 80px;
+
+        }
+
+
+
+        td.slot {
+
+            min-width: 120px;
+
+            cursor: text;
+
+        }
+
+
+
+        td.slot:focus {
+
+            outline: 2px solid #4CAF50;
+
+            background-color: #eaffea;
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+
+
+<h1>Booking av treningsrom</h1>
+
+<p>Klikk på ønsket tidspunkt og skriv navnet ditt.</p>
+
+
+
+<table>
+
+    <thead>
+
+        <tr>
+
+            <th>Tid</th>
+
+            <th>Mandag</th>
+
+            <th>Tirsdag</th>
+
+            <th>Onsdag</th>
+
+            <th>Torsdag</th>
+
+            <th>Fredag</th>
+
+            <th>Lørdag</th>
+
+            <th>Søndag</th>
+
+        </tr>
+
+    </thead>
+
+    <tbody id="calendar-body">
+
+    </tbody>
+
+</table>
+
+
+
+<script>
+
+    const startHour = 8;
+
+    const endHour = 23;
+
+    const days = 7;
+
+
+
+    const tbody = document.getElementById("calendar-body");
+
+
+
+    for (let hour = startHour; hour <= endHour; hour++) {
+
+        const row = document.createElement("tr");
+
+
+
+        const timeCell = document.createElement("td");
+
+        timeCell.className = "time";
+
+        timeCell.textContent = `${hour}:00`;
+
+        row.appendChild(timeCell);
+
+
+
+        for (let d = 0; d < days; d++) {
+
+            const slot = document.createElement("td");
+
+            slot.className = "slot";
+
+            slot.contentEditable = "true";
+
+            row.appendChild(slot);
+
+        }
+
+
+
+        tbody.appendChild(row);
+
+    }
+
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// 1. LIM INN DIN EGEN KONFIG HER
+const firebaseConfig = {
+apiKey:  "AIzaSyALGMHGqQwAzP96ajyyACqsCl8zQc_-0ww",
+authDomain: "stokkesgym.firebaseapp.com",
+projectId: "stokkesgym",
+storageBucket: "stokkesgym.firebasestorage.app",
+messagingSenderId: "799505110904",
+appId: "1:799505110904:web:bbb58abd42774477365a8d"
+};
+
+// 2. START FIREBASE
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const days = ["mandag","tirsdag","onsdag","torsdag","fredag","lørdag","søndag"];
+
+// 3. LAGRE BOOKING
+document.querySelectorAll(".slot").forEach((cell) => {
+cell.addEventListener("blur", async () => {
+const row = cell.parentElement.rowIndex - 1;
+const col = cell.cellIndex - 1;
+const hour = 8 + row;
+const day = days[col];
+const name = cell.innerText.trim();
+
+if (!name) return;
+
+const id = `${day}_${hour}`;
+
+await setDoc(doc(db, "bookings", id), {
+name,
+day,
+hour
+});
+});
+});
+
+// 4. LAST INN BOOKINGER
+async function loadBookings() {
+const snapshot = await getDocs(collection(db, "bookings"));
+snapshot.forEach(docSnap => {
+const data = docSnap.data();
+const row = data.hour - 8;
+const col = days.indexOf(data.day);
+const cell = document.querySelectorAll("tbody tr")[row].children[col + 1];
+cell.innerText = data.name;
+});
+}
+
+loadBookings();
+</script>
+
+</body>
+
+</html>
+
