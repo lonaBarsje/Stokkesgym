@@ -1,342 +1,250 @@
 <!DOCTYPE html>
-
 <html lang="no">
-
 <head>
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-<meta charset="UTF-8">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
     <title>Booking av treningsrom</title>
-
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
 
-body {
-font-family: Arial, sans-serif;
-padding: 20px;
-}
+        h1 {
+            margin-bottom: 5px;
+            text-align: center;
+        }
 
-h1 {
-margin-bottom: 5px;
-text-align: center;
-}
+        table {
+            width: 100%;
+            margin-top: 15px;
+            border-collapse: collapse;
+        }
 
-table {
-width: 100%;
-margin-top: 15px;
-border-collapse: collapse;
-}
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+            font-size: 14px;
+        }
 
-th, td {
-border: 1px solid #ccc;
-padding: 8px;
-text-align: center;
-font-size: 14px;
-}
+        th {
+            background-color: #f0f0f0;
+        }
 
-th {
-background-color: #f0f0f0;
-}
+        td.time {
+            font-weight: bold;
+            background-color: #fafafa;
+            width: 80px;
+        }
 
-td.time {
-font-weight: bold;
-background-color: #fafafa;
-width: 80px;
-}
+        td.slot {
+            min-width: 120px;
+            cursor: text;
+            background-color: #fff;
+            word-wrap: break-word;
+        }
 
-td.slot {
-min-width: 120px;
-cursor: text;
-background-color: #fff;
-word-wrap: break-word; /* Forhindre at tekst går utenfor */
-}
+        td.slot:focus {
+            outline: 2px solid #4CAF50;
+            background-color: #eaffea;
+        }
 
-td.slot:focus {
-outline: 2px solid #4CAF50;
-background-color: #eaffea;
-}
+        /* Responsiv design for små skjermer */
+        @media screen and (max-width: 768px) {
+            table {
+                font-size: 12px;
+            }
 
-/* Responsiv design */
-@media screen and (max-width: 768px) {
-table {
-font-size: 12px;
-}
+            th, td {
+                padding: 5px;
+            }
 
-th, td {
-padding: 5px;
-}
+            .time {
+                display: none; /* Skjuler tidene for mobil */
+            }
 
-.time {
-display: none; /* Skjuler tidene for mobil */
-}
+            td.slot {
+                font-size: 12px;
+                padding: 8px;
+            }
 
-td.slot {
-font-size: 12px;
-padding: 8px;
-}
+            /* Gjør kalenderen vertikal på små skjermer */
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
 
-/* Gjør kalenderen vertikal på små skjermer */
-table, thead, tbody, th, td, tr {
-display: block;
-}
+            thead tr {
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
 
-thead tr {
-position: absolute;
-top: -9999px;
-left: -9999px;
-}
+            tr {
+                border: 1px solid #ccc;
+                margin-bottom: 10px;
+            }
 
-tr {
-border: 1px solid #ccc;
-margin-bottom: 10px;
-}
+            td {
+                position: relative;
+                padding-left: 50%;
+            }
 
-td {
-position: relative;
-padding-left: 50%;
-}
+            td::before {
+                content: attr(data-day);
+                position: absolute;
+                left: 10px;
+                top: 6px;
+                font-weight: bold;
+            }
 
-td::before {
-content: attr(data-day);
-position: absolute;
-left: 10px;
-top: 6px;
-font-weight: bold;
-}
+            .slot {
+                text-align: left;
+                padding-left: 10px;
+            }
+        }
 
-.slot {
-text-align: left;
-padding-left: 10px;
-}
-}
+        /* Enda mindre skjerm (mobiltelefoner) */
+        @media screen and (max-width: 480px) {
+            td.slot {
+                padding-left: 15px;
+                font-size: 10px;
+            }
 
-@media screen and (max-width: 480px) {
-td.slot {
-padding-left: 15px;
-font-size: 10px;
-}
-}    }
+            h1 {
+                font-size: 18px;
+            }
 
+            p {
+                font-size: 14px;
+            }
+        }
+
+        /* Indikasjon for interaktivitet */
+        td.slot::before {
+            content: "Klikk for å booke";
+            font-size: 12px;
+            color: #888;
+        }
     </style>
-
 </head>
 
 <body>
+    <h1>Booking av treningsrom</h1>
+    <p>Klikk på ønsket tidspunkt og skriv navnet ditt.</p>
 
+    <table>
+        <thead>
+            <tr>
+                <th>Tid</th>
+                <th>Mandag</th>
+                <th>Tirsdag</th>
+                <th>Onsdag</th>
+                <th>Torsdag</th>
+                <th>Fredag</th>
+                <th>Lørdag</th>
+                <th>Søndag</th>
+            </tr>
+        </thead>
+        <tbody id="calendar-body">
+        </tbody>
+    </table>
 
+    <script>
+        const startHour = 8;
+        const endHour = 23;
+        const days = 7;
+        const tbody = document.getElementById("calendar-body");
 
-<h1>Booking av treningsrom</h1>
+        // Lager tabellrader for tid og ukedager
+        for (let hour = startHour; hour <= endHour; hour++) {
+            const row = document.createElement("tr");
 
-<p>Klikk på ønsket tidspunkt og skriv navnet ditt.</p>
+            const timeCell = document.createElement("td");
+            timeCell.className = "time";
+            timeCell.textContent = `${hour}:00`;
+            row.appendChild(timeCell);
 
+            for (let d = 0; d < days; d++) {
+                const slot = document.createElement("td");
+                slot.className = "slot";
+                slot.contentEditable = "true";
+                row.appendChild(slot);
+            }
 
+            tbody.appendChild(row);
+        }
+    </script>
 
-<table>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    <thead>
+        // Firebase-konfigurasjon
+        const firebaseConfig = {
+            apiKey:  "AIzaSyALGMHGqQwAzP96ajyyACqsCl8zQc_-0ww",
+            authDomain: "stokkesgym.firebaseapp.com",
+            projectId: "stokkesgym",
+            storageBucket: "stokkesgym.firebasestorage.app",
+            messagingSenderId: "799505110904",
+            appId: "1:799505110904:web:bbb58abd42774477365a8d"
+        };
 
-        <tr>
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-            <th>Tid</th>
+        const days = ["mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag", "søndag"];
 
-            <th>Mandag</th>
-
-            <th>Tirsdag</th>
-
-            <th>Onsdag</th>
-
-            <th>Torsdag</th>
-
-            <th>Fredag</th>
-
-            <th>Lørdag</th>
-
-            <th>Søndag</th>
-
-        </tr>
-
-    </thead>
-
-    <tbody id="calendar-body">
-
-    </tbody>
-
-</table>
-
-
-
-<script>
-
-    const startHour = 8;
-
-    const endHour = 23;
-
-    const days = 7;
-
-
-
-    const tbody = document.getElementById("calendar-body");
-
-
-
-    for (let hour = startHour; hour <= endHour; hour++) {
-
-        const row = document.createElement("tr");
-
-
-
-        const timeCell = document.createElement("td");
-
-        timeCell.className = "time";
-
-        timeCell.textContent = `${hour}:00`;
-
-        row.appendChild(timeCell);
-
-
-
-        for (let d = 0; d < days; d++) {
-
-            const slot = document.createElement("td");
-
-            slot.className = "slot";
-
-            slot.contentEditable = "true";
-
-            row.appendChild(slot);
-
+        // Laste inn eksisterende bookinger
+        async function loadBookings() {
+            const snapshot = await getDocs(collection(db, "bookings"));
+            snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                const row = data.hour - 8;
+                const col = days.indexOf(data.day);
+                const cell = document.querySelectorAll("tbody tr")[row].children[col + 1];
+                cell.innerText = data.name;
+            });
         }
 
-
-
-        tbody.appendChild(row);
-
-    }
-
-</script>
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-// 1. LIM INN DIN EGEN KONFIG HER
-const firebaseConfig = {
-apiKey:  "AIzaSyALGMHGqQwAzP96ajyyACqsCl8zQc_-0ww",
-authDomain: "stokkesgym.firebaseapp.com",
-projectId: "stokkesgym",
-storageBucket: "stokkesgym.firebasestorage.app",
-messagingSenderId: "799505110904",
-appId: "1:799505110904:web:bbb58abd42774477365a8d"
-};
-
-// 2. START FIREBASE
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-const days = ["mandag","tirsdag","onsdag","torsdag","fredag","lørdag","søndag"];
-
-// 1. Laste inn bookinger
-
-  async function loadBookings() {
-
-    const snapshot = await getDocs(collection(db, "bookings"));
-
-    snapshot.forEach(docSnap => {
-
-      const data = docSnap.data();
-
-      const row = data.hour - 8;
-
-      const col = days.indexOf(data.day);
-
-      const cell = document.querySelectorAll("tbody tr")[row].children[col + 1];
-
-      cell.innerText = data.name;
-
-    });
-
-  }
-
-
-
-  // 2. Sette inn ny booking
-
-  document.querySelectorAll(".slot").forEach((cell) => {
-
-    cell.addEventListener("blur", async () => {
-
-      const row = cell.parentElement.rowIndex - 1;
-
-      const col = cell.cellIndex - 1;
-
-      const hour = 8 + row;
-
-      const day = days[col];
-
-      const name = cell.innerText.trim();
-
-
-
-      if (!name) return;
-
-
-
-      const id = `${day}_${hour}`;
-
-      await setDoc(doc(db, "bookings", id), { name, day, hour });
-
-    });
-
-  });
-
-
-
-  // 3. Slette gamle bookinger
-
-  async function deleteExpiredBookings() {
-
-    const now = new Date();
-
-    const currentHour = now.getHours(); // Henter timen for nå
-
-
-
-    const snapshot = await getDocs(collection(db, "bookings"));
-
-    snapshot.forEach(async (docSnap) => {
-
-      const data = docSnap.data();
-
-      const bookingHour = data.hour;
-
-
-
-      // Slett booking hvis timen er passert
-
-      if (bookingHour < currentHour) {
-
-        await deleteDoc(doc(db, "bookings", docSnap.id)); // Slett booking fra Firestore
-
-      }
-
-    });
-
-  }
-
-
-
-  // Kall funksjonen for å slette gamle bookinger en gang per time
-
-  setInterval(deleteExpiredBookings, 60 * 60 * 1000); // Kjør hver time
-
-
-
-  // Last inn eksisterende bookinger
-
-  loadBookings();</script>
-
+        // Sette inn ny booking
+        document.querySelectorAll(".slot").forEach((cell) => {
+            cell.addEventListener("blur", async () => {
+                const row = cell.parentElement.rowIndex - 1;
+                const col = cell.cellIndex - 1;
+                const hour = 8 + row;
+                const day = days[col];
+                const name = cell.innerText.trim();
+
+                if (!name) return;
+
+                const id = `${day}_${hour}`;
+                await setDoc(doc(db, "bookings", id), { name, day, hour });
+            });
+        });
+
+        // Slette gamle bookinger
+        async function deleteExpiredBookings() {
+            const now = new Date();
+            const currentHour = now.getHours();
+
+            const snapshot = await getDocs(collection(db, "bookings"));
+            snapshot.forEach(async (docSnap) => {
+                const data = docSnap.data();
+                const bookingHour = data.hour;
+
+                // Slett booking hvis timen er passert
+                if (bookingHour < currentHour) {
+                    await deleteDoc(doc(db, "bookings", docSnap.id)); // Slett booking fra Firestore
+                }
+            });
+        }
+
+        // Kall funksjonen for å slette gamle bookinger en gang per time
+        setInterval(deleteExpiredBookings, 60 * 60 * 1000); // Kjør hver time
+
+        // Last inn eksisterende bookinger
+        loadBookings();
+    </script>
 </body>
-
 </html>
-
