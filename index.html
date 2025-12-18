@@ -176,11 +176,35 @@
                 const slot = document.createElement("td");
                 slot.className = "slot";
                 slot.contentEditable = "true";
+                slot.textContent = "Klikk for å booke"; // Legg til en standard tekst
                 row.appendChild(slot);
             }
 
             tbody.appendChild(row);
         }
+
+        // Fjern teksten "Klikk for å booke" når cellen blir klikket på
+        document.querySelectorAll(".slot").forEach((cell) => {
+            cell.addEventListener("focus", () => {
+                if (cell.textContent === "Klikk for å booke") {
+                    cell.textContent = "";
+                }
+            });
+
+            // Når cellen mister fokus, lagrer vi teksten
+            cell.addEventListener("blur", async () => {
+                const row = cell.parentElement.rowIndex - 1;
+                const col = cell.cellIndex - 1;
+                const hour = 8 + row;
+                const day = ["mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag", "søndag"][col];
+                const name = cell.innerText.trim();
+
+                if (!name) return;
+
+                const id = `${day}_${hour}`;
+                await setDoc(doc(db, "bookings", id), { name, day, hour });
+            });
+        });
     </script>
 
     <script type="module">
@@ -235,23 +259,4 @@
             const now = new Date();
             const currentHour = now.getHours();
 
-            const snapshot = await getDocs(collection(db, "bookings"));
-            snapshot.forEach(async (docSnap) => {
-                const data = docSnap.data();
-                const bookingHour = data.hour;
-
-                // Slett booking hvis timen er passert
-                if (bookingHour < currentHour) {
-                    await deleteDoc(doc(db, "bookings", docSnap.id)); // Slett booking fra Firestore
-                }
-            });
-        }
-
-        // Kall funksjonen for å slette gamle bookinger en gang per time
-        setInterval(deleteExpiredBookings, 60 * 60 * 1000); // Kjør hver time
-
-        // Last inn eksisterende bookinger
-        loadBookings();
-    </script>
-</body>
-</html>
+            const snapshot = await getDocs(collection(db
