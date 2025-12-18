@@ -40,14 +40,15 @@
 
         td.slot {
             min-width: 120px;
-            cursor: text;
-            background-color: #fff;
+            cursor: pointer;
+            background-color: #d4edda; /* Grønn for ledig */
             word-wrap: break-word;
         }
 
-        td.slot:focus {
-            outline: 2px solid #4CAF50;
-            background-color: #eaffea;
+        td.slot.taken {
+            background-color: #f8d7da; /* Rød for opptatt */
+            color: #721c24;
+            cursor: not-allowed;
         }
 
         /* Responsiv design for små skjermer */
@@ -74,138 +75,11 @@
                 width: 100%;
             }
 
+            td.slot.taken {
+                cursor: not-allowed;
+            }
+
             /* Vis både tidene og ukedagene vertikalt */
             table, thead, tbody, th, td, tr {
                 display: block;
             }
-
-            thead tr {
-                position: absolute;
-                top: -9999px;
-                left: -9999px;
-            }
-
-            tr {
-                border: 1px solid #ccc;
-                margin-bottom: 10px;
-                display: flex;
-                flex-direction: column; /* Stabel elementene vertikalt */
-            }
-
-            td {
-                position: relative;
-                padding-left: 50%;
-                width: 100%;
-            }
-
-            td::before {
-                content: attr(data-day);
-                position: absolute;
-                left: 10px;
-                top: 6px;
-                font-weight: bold;
-            }
-
-            .slot {
-                text-align: left;
-                padding-left: 10px;
-            }
-
-            /* Gjør det lettere å lese på små skjermer */
-            td.slot {
-                font-size: 10px;
-                padding: 12px;
-            }
-        }
-
-        /* For veldig små skjermer (mobiltelefoner) */
-        @media screen and (max-width: 480px) {
-            td.slot {
-                padding-left: 15px;
-                font-size: 10px;
-            }
-
-            h1 {
-                font-size: 18px;
-            }
-
-            p {
-                font-size: 14px;
-            }
-        }
-    </style>
-</head>
-
-<body>
-    <h1>Booking av treningsrom</h1>
-    <p>Klikk på ønsket tidspunkt og skriv navnet ditt.</p>
-
-    <table>
-        <thead>
-            <tr>
-                <th>Tid</th>
-                <th>Mandag</th>
-                <th>Tirsdag</th>
-                <th>Onsdag</th>
-                <th>Torsdag</th>
-                <th>Fredag</th>
-                <th>Lørdag</th>
-                <th>Søndag</th>
-            </tr>
-        </thead>
-        <tbody id="calendar-body">
-        </tbody>
-    </table>
-
-    <script>
-        const startHour = 8;
-        const endHour = 23;
-        const days = 7;
-        const daysOfWeek = ["Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag", "Lørdag", "Søndag"];
-        const tbody = document.getElementById("calendar-body");
-
-        // Lager tabellrader for tid og ukedager
-        for (let hour = startHour; hour <= endHour; hour++) {
-            const row = document.createElement("tr");
-
-            const timeCell = document.createElement("td");
-            timeCell.className = "time";
-            timeCell.textContent = `${hour}:00`;
-            row.appendChild(timeCell);
-
-            for (let d = 0; d < days; d++) {
-                const slot = document.createElement("td");
-                slot.className = "slot";
-                slot.contentEditable = "true"; // Cellen er redigerbar
-                slot.textContent = ""; // Ingen tekst, cellen er tom
-                slot.setAttribute("data-day", daysOfWeek[d]); // Legg til ukedag som data-attributt
-                row.appendChild(slot);
-            }
-
-            tbody.appendChild(row);
-        }
-
-        // Fjern teksten når cellen blir klikket på og gjør den redigerbar
-        document.querySelectorAll(".slot").forEach((cell) => {
-            cell.addEventListener("focus", () => {
-                // Cellen er tom og kan redigeres
-            });
-
-            // Når cellen mister fokus, lagrer vi teksten
-            cell.addEventListener("blur", async () => {
-                const row = cell.parentElement.rowIndex - 1;
-                const col = cell.cellIndex - 1;
-                const hour = 8 + row;
-                const day = daysOfWeek[col];
-                const name = cell.innerText.trim();
-
-                if (!name) return;
-
-                // Skriv til Firebase her om nødvendig
-                // For testing kan du kommentere ut denne koden midlertidig.
-                console.log(`Boket: ${name} på ${day} kl ${hour}:00`);
-            });
-        });
-    </script>
-</body>
-</html>
