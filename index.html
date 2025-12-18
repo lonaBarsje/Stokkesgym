@@ -61,12 +61,16 @@
             }
 
             .time {
-                display: none; /* Skjuler tidene for mobil */
+                font-size: 14px;
+                text-align: left;
+                padding-left: 10px;
+                display: block;
             }
 
             td.slot {
                 font-size: 12px;
                 padding: 8px;
+                width: auto; /* Gjør cellene mer fleksible på små skjermer */
             }
 
             /* Gjør kalenderen vertikal på små skjermer */
@@ -74,6 +78,7 @@
                 display: block;
             }
 
+            /* Skjuler hele første kolonne (tid) på mobil, men viser dager i overskrift */
             thead tr {
                 position: absolute;
                 top: -9999px;
@@ -83,11 +88,14 @@
             tr {
                 border: 1px solid #ccc;
                 margin-bottom: 10px;
+                display: flex;
+                flex-direction: column; /* Lar elementene vises vertikalt */
             }
 
             td {
                 position: relative;
                 padding-left: 50%;
+                width: 100%;
             }
 
             td::before {
@@ -102,9 +110,15 @@
                 text-align: left;
                 padding-left: 10px;
             }
+
+            /* Gjør det lettere å lese på svært små skjermer */
+            td.slot {
+                font-size: 10px;
+                padding: 12px;
+            }
         }
 
-        /* Enda mindre skjerm (mobiltelefoner) */
+        /* For veldig små skjermer (mobiltelefoner) */
         @media screen and (max-width: 480px) {
             td.slot {
                 padding-left: 15px;
@@ -118,13 +132,6 @@
             p {
                 font-size: 14px;
             }
-        }
-
-        /* Indikasjon for interaktivitet */
-        td.slot::before {
-            content: "Klikk for å booke";
-            font-size: 12px;
-            color: #888;
         }
     </style>
 </head>
