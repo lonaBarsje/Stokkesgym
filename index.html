@@ -60,7 +60,6 @@
                 padding: 5px;
             }
 
-            /* Vis tidene vertikalt på mobilen */
             .time {
                 font-size: 14px;
                 text-align: left;
@@ -165,7 +164,25 @@
         const daysOfWeek = ["Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag", "Lørdag", "Søndag"];
         const tbody = document.getElementById("calendar-body");
 
+        // Funksjon for å få datoen for den første dagen (Mandag) i uken
+        function getWeekStartDate() {
+            const today = new Date();
+            const dayOfWeek = today.getDay(); // Søndag = 0, Mandag = 1, osv.
+            const diff = today.getDate() - dayOfWeek + (dayOfWeek == 0 ? -6 : 1); // Hvis søndag, ta forrige mandag
+            today.setDate(diff);
+            return today;
+        }
+
+        // Funksjon for å formatere datoen som dd.mm.yyyy
+        function formatDate(date) {
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0'); // Måneden starter fra 0
+            const year = date.getFullYear();
+            return `${day}.${month}.${year}`;
+        }
+
         // Lager tabellrader for tid og ukedager
+        const startDate = getWeekStartDate(); // Få dagens dato for første mandag
         for (let hour = startHour; hour <= endHour; hour++) {
             const row = document.createElement("tr");
 
@@ -177,69 +194,17 @@
             for (let d = 0; d < days; d++) {
                 const slot = document.createElement("td");
                 slot.className = "slot";
-                slot.contentEditable = "true";
-                slot.textContent = "Klikk for å booke"; // Legg til en standard tekst
-                slot.setAttribute("data-day", daysOfWeek[d]); // Legg til ukedag i data-attributt
+                slot.contentEditable = "true"; // Cellen er redigerbar
+                const currentDate = new Date(startDate);
+                currentDate.setDate(startDate.getDate() + d); // Legg til riktig dato for den dagen
+                const formattedDate = formatDate(currentDate);
+
+                slot.textContent = ""; // Fjern "Klikk for å booke" og la det være tomt
+                slot.setAttribute("data-day", `${daysOfWeek[d]} ${formattedDate}`); // Legg til dag + dato
                 row.appendChild(slot);
             }
 
             tbody.appendChild(row);
         }
 
-        // Fjern teksten "Klikk for å booke" når cellen blir klikket på
-        document.querySelectorAll(".slot").forEach((cell) => {
-            cell.addEventListener("focus", () => {
-                if (cell.textContent === "Klikk for å booke") {
-                    cell.textContent = "";
-                }
-            });
-
-            // Når cellen mister fokus, lagrer vi teksten
-            cell.addEventListener("blur", async () => {
-                const row = cell.parentElement.rowIndex - 1;
-                const col = cell.cellIndex - 1;
-                const hour = 8 + row;
-                const day = daysOfWeek[col];
-                const name = cell.innerText.trim();
-
-                if (!name) return;
-
-                const id = `${day}_${hour}`;
-                await setDoc(doc(db, "bookings", id), { name, day, hour });
-            });
-        });
-    </script>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        // Firebase-konfigurasjon
-        const firebaseConfig = {
-            apiKey:  "AIzaSyALGMHGqQwAzP96ajyyACqsCl8zQc_-0ww",
-            authDomain: "stokkesgym.firebaseapp.com",
-            projectId: "stokkesgym",
-            storageBucket: "stokkesgym.firebasestorage.app",
-            messagingSenderId: "799505110904",
-            appId: "1:799505110904:web:bbb58abd42774477365a8d"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        // Laste inn eksisterende bookinger
-        async function loadBookings() {
-            const snapshot = await getDocs(collection(db, "bookings"));
-            snapshot.forEach(docSnap => {
-                const data = docSnap.data();
-                const row = data.hour - 8;
-                const col = daysOfWeek.indexOf(data.day);
-                const cell = document.querySelectorAll("tbody tr")[row].children[col + 1];
-                cell.innerText = data.name;
-            });
-        }
-
-        loadBookings();
-    </script>
-</body>
-</html>
+        // Fjern teksten
