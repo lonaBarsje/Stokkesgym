@@ -60,12 +60,8 @@
                 padding: 5px;
             }
 
-            /* Skjuler tidene for mobil, men viser dem vertikalt på små skjermer */
             .time {
-                display: block;
-                font-size: 14px;
-                text-align: left;
-                padding-left: 10px;
+                display: none; /* Skjuler tidene for mobil */
             }
 
             td.slot {
@@ -122,6 +118,13 @@
             p {
                 font-size: 14px;
             }
+        }
+
+        /* Indikasjon for interaktivitet */
+        td.slot::before {
+            content: "Klikk for å booke";
+            font-size: 12px;
+            color: #888;
         }
     </style>
 </head>
@@ -187,4 +190,61 @@
             appId: "1:799505110904:web:bbb58abd42774477365a8d"
         };
 
-        const app =
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const days = ["mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag", "søndag"];
+
+        // Laste inn eksisterende bookinger
+        async function loadBookings() {
+            const snapshot = await getDocs(collection(db, "bookings"));
+            snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                const row = data.hour - 8;
+                const col = days.indexOf(data.day);
+                const cell = document.querySelectorAll("tbody tr")[row].children[col + 1];
+                cell.innerText = data.name;
+            });
+        }
+
+        // Sette inn ny booking
+        document.querySelectorAll(".slot").forEach((cell) => {
+            cell.addEventListener("blur", async () => {
+                const row = cell.parentElement.rowIndex - 1;
+                const col = cell.cellIndex - 1;
+                const hour = 8 + row;
+                const day = days[col];
+                const name = cell.innerText.trim();
+
+                if (!name) return;
+
+                const id = `${day}_${hour}`;
+                await setDoc(doc(db, "bookings", id), { name, day, hour });
+            });
+        });
+
+        // Slette gamle bookinger
+        async function deleteExpiredBookings() {
+            const now = new Date();
+            const currentHour = now.getHours();
+
+            const snapshot = await getDocs(collection(db, "bookings"));
+            snapshot.forEach(async (docSnap) => {
+                const data = docSnap.data();
+                const bookingHour = data.hour;
+
+                // Slett booking hvis timen er passert
+                if (bookingHour < currentHour) {
+                    await deleteDoc(doc(db, "bookings", docSnap.id)); // Slett booking fra Firestore
+                }
+            });
+        }
+
+        // Kall funksjonen for å slette gamle bookinger en gang per time
+        setInterval(deleteExpiredBookings, 60 * 60 * 1000); // Kjør hver time
+
+        // Last inn eksisterende bookinger
+        loadBookings();
+    </script>
+</body>
+</html>
