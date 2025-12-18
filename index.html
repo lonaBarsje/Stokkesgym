@@ -60,25 +60,26 @@
                 padding: 5px;
             }
 
+            /* Vis tidene vertikalt på mobilen */
             .time {
                 font-size: 14px;
                 text-align: left;
                 padding-left: 10px;
                 display: block;
+                width: 100%;
             }
 
             td.slot {
                 font-size: 12px;
                 padding: 8px;
-                width: auto; /* Gjør cellene mer fleksible på små skjermer */
+                width: 100%;
             }
 
-            /* Gjør kalenderen vertikal på små skjermer */
+            /* Vis både tidene og ukedagene vertikalt */
             table, thead, tbody, th, td, tr {
                 display: block;
             }
 
-            /* Skjuler hele første kolonne (tid) på mobil, men viser dager i overskrift */
             thead tr {
                 position: absolute;
                 top: -9999px;
@@ -89,7 +90,7 @@
                 border: 1px solid #ccc;
                 margin-bottom: 10px;
                 display: flex;
-                flex-direction: column; /* Lar elementene vises vertikalt */
+                flex-direction: column; /* Stabel elementene vertikalt */
             }
 
             td {
@@ -111,7 +112,7 @@
                 padding-left: 10px;
             }
 
-            /* Gjør det lettere å lese på svært små skjermer */
+            /* Gjør det lettere å lese på små skjermer */
             td.slot {
                 font-size: 10px;
                 padding: 12px;
@@ -161,6 +162,7 @@
         const startHour = 8;
         const endHour = 23;
         const days = 7;
+        const daysOfWeek = ["Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag", "Lørdag", "Søndag"];
         const tbody = document.getElementById("calendar-body");
 
         // Lager tabellrader for tid og ukedager
@@ -177,6 +179,7 @@
                 slot.className = "slot";
                 slot.contentEditable = "true";
                 slot.textContent = "Klikk for å booke"; // Legg til en standard tekst
+                slot.setAttribute("data-day", daysOfWeek[d]); // Legg til ukedag i data-attributt
                 row.appendChild(slot);
             }
 
@@ -196,7 +199,7 @@
                 const row = cell.parentElement.rowIndex - 1;
                 const col = cell.cellIndex - 1;
                 const hour = 8 + row;
-                const day = ["mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag", "søndag"][col];
+                const day = daysOfWeek[col];
                 const name = cell.innerText.trim();
 
                 if (!name) return;
@@ -224,39 +227,19 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        const days = ["mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag", "søndag"];
-
         // Laste inn eksisterende bookinger
         async function loadBookings() {
             const snapshot = await getDocs(collection(db, "bookings"));
             snapshot.forEach(docSnap => {
                 const data = docSnap.data();
                 const row = data.hour - 8;
-                const col = days.indexOf(data.day);
+                const col = daysOfWeek.indexOf(data.day);
                 const cell = document.querySelectorAll("tbody tr")[row].children[col + 1];
                 cell.innerText = data.name;
             });
         }
 
-        // Sette inn ny booking
-        document.querySelectorAll(".slot").forEach((cell) => {
-            cell.addEventListener("blur", async () => {
-                const row = cell.parentElement.rowIndex - 1;
-                const col = cell.cellIndex - 1;
-                const hour = 8 + row;
-                const day = days[col];
-                const name = cell.innerText.trim();
-
-                if (!name) return;
-
-                const id = `${day}_${hour}`;
-                await setDoc(doc(db, "bookings", id), { name, day, hour });
-            });
-        });
-
-        // Slette gamle bookinger
-        async function deleteExpiredBookings() {
-            const now = new Date();
-            const currentHour = now.getHours();
-
-            const snapshot = await getDocs(collection(db
+        loadBookings();
+    </script>
+</body>
+</html>
