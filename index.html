@@ -70,7 +70,6 @@
                 width: 100%;
             }
         }
-
     </style>
 </head>
 
@@ -89,13 +88,30 @@
         </tbody>
     </table>
 
-    <script>
-        const startHour = 6; // Starter på 06:00
-        const endHour = 23; // Slutter på 23:00
+    <script type="module">
+        // Firebase konfigurasjon
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey:  "AIzaSyALGMHGqQwAzP96ajyyACqsCl8zQc_-0ww",
+            authDomain: "stokkesgym.firebaseapp.com",
+            projectId: "stokkesgym",
+            storageBucket: "stokkesgym.firebasestorage.app",
+            messagingSenderId: "799505110904",
+            appId: "1:799505110904:web:bbb58abd42774477365a8d"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const startHour = 6;
+        const endHour = 23;
         const tbody = document.getElementById("calendar-body");
 
         // Funksjon som genererer tidene i tabellen
-        function generateTimes() {
+        async function generateTimes() {
             console.log("Genererer tider...");
             for (let hour = startHour; hour <= endHour; hour++) {
                 const row = document.createElement("tr");
@@ -110,20 +126,39 @@
                 const slotCell = document.createElement("td");
                 slotCell.className = "slot";
                 slotCell.setAttribute("data-hour", hour);
-                slotCell.textContent = "Ledig"; // Standard tekst for ledig
+
+                // Sjekk om denne timen er opptatt i Firestore
+                const bookingDoc = await getDoc(doc(db, "bookings", `${hour}:00`));
+                if (bookingDoc.exists()) {
+                    slotCell.classList.add("taken");
+                    slotCell.textContent = "Opptatt";
+                    slotCell.style.backgroundColor = "#f8d7da"; // Rød bakgrunn
+                } else {
+                    slotCell.textContent = "Ledig"; // Standard tekst for ledig
+                    slotCell.style.backgroundColor = "#d4edda"; // Grønn bakgrunn
+                }
 
                 // Klikk-funksjon for å markere som opptatt eller tilbake til ledig
-                slotCell.onclick = function () {
+                slotCell.onclick = async function () {
                     if (slotCell.classList.contains("taken")) {
                         // Hvis den er opptatt, gjør den ledig
                         slotCell.classList.remove("taken");
                         slotCell.textContent = "Ledig";
                         slotCell.style.backgroundColor = "#d4edda"; // Tilbake til grønn
+
+                        // Slett booking fra Firestore
+                        await deleteDoc(doc(db, "bookings", `${hour}:00`));
                     } else {
                         // Hvis den er ledig, gjør den opptatt
                         slotCell.classList.add("taken");
                         slotCell.textContent = "Opptatt";
                         slotCell.style.backgroundColor = "#f8d7da"; // Rød bakgrunn
+
+                        // Sett booking i Firestore
+                        await setDoc(doc(db, "bookings", `${hour}:00`), {
+                            status: "opptatt",
+                            time: `${hour}:00`
+                        });
                     }
                 };
 
@@ -134,7 +169,7 @@
         }
 
         // Kall funksjonen for å generere tidene
-        window.onload = function() {
+        window.onload = function () {
             console.log("Dokumentet er lastet, genererer tider...");
             generateTimes();
         }
