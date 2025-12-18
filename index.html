@@ -4,93 +4,119 @@
 
 <head>
 
-    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+<meta charset="UTF-8">
 
     <title>Booking av treningsrom</title>
 
     <style>
 
-        body {
+body {
+font-family: Arial, sans-serif;
+padding: 20px;
+}
 
-            font-family: Arial, sans-serif;
+h1 {
+margin-bottom: 5px;
+text-align: center;
+}
 
-            padding: 20px;
+table {
+width: 100%;
+margin-top: 15px;
+border-collapse: collapse;
+}
 
-        }
+th, td {
+border: 1px solid #ccc;
+padding: 8px;
+text-align: center;
+font-size: 14px;
+}
 
+th {
+background-color: #f0f0f0;
+}
 
+td.time {
+font-weight: bold;
+background-color: #fafafa;
+width: 80px;
+}
 
-        h1 {
+td.slot {
+min-width: 120px;
+cursor: text;
+background-color: #fff;
+word-wrap: break-word; /* Forhindre at tekst går utenfor */
+}
 
-            margin-bottom: 5px;
+td.slot:focus {
+outline: 2px solid #4CAF50;
+background-color: #eaffea;
+}
 
-        }
+/* Responsiv design */
+@media screen and (max-width: 768px) {
+table {
+font-size: 12px;
+}
 
+th, td {
+padding: 5px;
+}
 
+.time {
+display: none; /* Skjuler tidene for mobil */
+}
 
-        table {
+td.slot {
+font-size: 12px;
+padding: 8px;
+}
 
-            border-collapse: collapse;
+/* Gjør kalenderen vertikal på små skjermer */
+table, thead, tbody, th, td, tr {
+display: block;
+}
 
-            width: 100%;
+thead tr {
+position: absolute;
+top: -9999px;
+left: -9999px;
+}
 
-            margin-top: 15px;
+tr {
+border: 1px solid #ccc;
+margin-bottom: 10px;
+}
 
-        }
+td {
+position: relative;
+padding-left: 50%;
+}
 
+td::before {
+content: attr(data-day);
+position: absolute;
+left: 10px;
+top: 6px;
+font-weight: bold;
+}
 
+.slot {
+text-align: left;
+padding-left: 10px;
+}
+}
 
-        th, td {
-
-            border: 1px solid #ccc;
-
-            padding: 6px;
-
-            text-align: center;
-
-            font-size: 14px;
-
-        }
-
-
-
-        th {
-
-            background-color: #f0f0f0;
-
-        }
-
-
-
-        td.time {
-
-            font-weight: bold;
-
-            background-color: #fafafa;
-
-            width: 80px;
-
-        }
-
-
-
-        td.slot {
-
-            min-width: 120px;
-
-            cursor: text;
-
-        }
-
-
-
-        td.slot:focus {
-
-            outline: 2px solid #4CAF50;
-
-            background-color: #eaffea;
-
-        }
+@media screen and (max-width: 480px) {
+td.slot {
+padding-left: 15px;
+font-size: 10px;
+}
+}    }
 
     </style>
 
